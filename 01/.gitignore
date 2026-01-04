@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+env/
+venv/
+data/
+models/
+mlruns/
+.pytest_cache/
+*.log
