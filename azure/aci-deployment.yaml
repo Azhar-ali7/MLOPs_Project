@@ -1,5 +1,6 @@
 # Azure Container Instances Deployment Template
 # Use this with: az container create --resource-group <rg> --file aci-deployment.yaml
+# Note: Update the image name and dnsNameLabel before deploying
 
 apiVersion: '2021-09-01'
 location: eastus
@@ -8,7 +9,7 @@ properties:
   containers:
   - name: heart-disease-api
     properties:
-      image: <YOUR_DOCKERHUB_USERNAME>/heart-disease-api:latest
+      image: azharali7/heart-disease-api:latest
       resources:
         requests:
           cpu: 1.0
@@ -33,11 +34,12 @@ properties:
     ports:
     - protocol: TCP
       port: 8000
-    dnsNameLabel: heart-disease-api-${RANDOM}
-  diagnostics:
-    logAnalytics:
-      workspaceId: <YOUR_WORKSPACE_ID>
-      workspaceKey: <YOUR_WORKSPACE_KEY>
+    dnsNameLabel: heart-disease-api-azhar
+  # Optional: Uncomment to enable Azure Monitor Log Analytics
+  # diagnostics:
+  #   logAnalytics:
+  #     workspaceId: <YOUR_WORKSPACE_ID>
+  #     workspaceKey: <YOUR_WORKSPACE_KEY>
 tags:
   Environment: Production
   Application: HeartDiseaseAPI

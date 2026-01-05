@@ -91,6 +91,7 @@ az container create \
     --resource-group ${RESOURCE_GROUP} \
     --name ${CONTAINER_NAME} \
     --image ${IMAGE_PATH} \
+    --os-type Linux \
     --cpu ${CPU} \
     --memory ${MEMORY} \
     --dns-name-label ${DNS_NAME_LABEL} \
