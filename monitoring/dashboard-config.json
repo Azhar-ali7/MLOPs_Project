@@ -1,0 +1,75 @@
+{
+  "name": "Heart Disease API Dashboard",
+  "description": "Monitoring dashboard for Heart Disease Prediction API",
+  "widgets": [
+    {
+      "type": "timechart",
+      "title": "Request Rate (per minute)",
+      "query": "requests | where timestamp > ago(24h) | summarize count() by bin(timestamp, 1m)",
+      "position": { "x": 0, "y": 0, "width": 6, "height": 4 }
+    },
+    {
+      "type": "timechart",
+      "title": "Average Response Time",
+      "query": "requests | where timestamp > ago(24h) | summarize avg(duration) by bin(timestamp, 5m)",
+      "position": { "x": 6, "y": 0, "width": 6, "height": 4 }
+    },
+    {
+      "type": "metric",
+      "title": "Total Requests (24h)",
+      "query": "requests | where timestamp > ago(24h) | count",
+      "position": { "x": 0, "y": 4, "width": 3, "height": 2 }
+    },
+    {
+      "type": "metric",
+      "title": "Failed Requests (24h)",
+      "query": "requests | where timestamp > ago(24h) and success == false | count",
+      "position": { "x": 3, "y": 4, "width": 3, "height": 2 }
+    },
+    {
+      "type": "metric",
+      "title": "Avg Response Time (24h)",
+      "query": "requests | where timestamp > ago(24h) | summarize avg(duration)",
+      "position": { "x": 6, "y": 4, "width": 3, "height": 2 }
+    },
+    {
+      "type": "metric",
+      "title": "Success Rate (%)",
+      "query": "requests | where timestamp > ago(24h) | summarize success_rate = (countif(success) * 100.0) / count()",
+      "position": { "x": 9, "y": 4, "width": 3, "height": 2 }
+    },
+    {
+      "type": "table",
+      "title": "Recent Predictions",
+      "query": "traces | where timestamp > ago(1h) and message contains 'Prediction completed' | project timestamp, message, customDimensions | take 20",
+      "position": { "x": 0, "y": 6, "width": 12, "height": 4 }
+    },
+    {
+      "type": "timechart",
+      "title": "Error Rate",
+      "query": "requests | where timestamp > ago(24h) | summarize total = count(), errors = countif(success == false) by bin(timestamp, 5m) | extend error_rate = (errors * 100.0) / total",
+      "position": { "x": 0, "y": 10, "width": 6, "height": 4 }
+    },
+    {
+      "type": "piechart",
+      "title": "HTTP Status Codes (24h)",
+      "query": "requests | where timestamp > ago(24h) | summarize count() by resultCode",
+      "position": { "x": 6, "y": 10, "width": 6, "height": 4 }
+    },
+    {
+      "type": "table",
+      "title": "Slowest Requests",
+      "query": "requests | where timestamp > ago(24h) | top 10 by duration desc | project timestamp, name, duration, resultCode",
+      "position": { "x": 0, "y": 14, "width": 12, "height": 4 }
+    },
+    {
+      "type": "table",
+      "title": "Recent Exceptions",
+      "query": "exceptions | where timestamp > ago(24h) | project timestamp, type, outerMessage, innermostMessage | take 20",
+      "position": { "x": 0, "y": 18, "width": 12, "height": 4 }
+    }
+  ],
+  "timeRange": "Last 24 hours",
+  "refreshInterval": "5 minutes"
+}
+

@@ -1,0 +1,109 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*$py.class
+*.so
+.Python
+
+# Virtual Environments
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Data and Models
+# data/
+models/
+*.joblib
+*.pkl
+*.pickle
+*.h5
+*.hdf5
+
+# MLflow
+mlruns/
+mlflow.db
+*.db
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+notebooks/**/.ipynb_checkpoints/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+*.cover
+.cache
+
+# Logs
+*.log
+logs/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Documentation files (Markdown)
+*.md
+!README.md
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+k8s/secret.yaml
+
+# Docker
+docker-compose.override.yml
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+.~*
