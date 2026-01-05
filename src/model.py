@@ -1,4 +1,5 @@
 """Model loader and predictor utilities."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -25,10 +26,7 @@ class ModelWrapper:
             expected = list(expected)
             provided = list(df.columns)
             if set(expected) != set(provided):
-                raise ValueError(
-                    "Feature names mismatch. "
-                    f"Expected: {expected}. Got: {provided}."
-                )
+                raise ValueError("Feature names mismatch. " f"Expected: {expected}. Got: {provided}.")
             # Reorder columns to match training order
             if provided != expected:
                 df = df[expected]
@@ -42,4 +40,4 @@ class ModelWrapper:
 
         preds = model.predict(df)
         probs = model.predict_proba(df)[:, 1]
-        return [{'prediction': int(p), 'probability': float(prob)} for p, prob in zip(preds, probs)]
+        return [{"prediction": int(p), "probability": float(prob)} for p, prob in zip(preds, probs)]

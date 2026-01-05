@@ -1,6 +1,7 @@
 """Download or copy the Heart Disease dataset CSV to a target path.
 Simple convenience wrapper so pipelines can fetch data reproducibly.
 """
+
 from __future__ import annotations
 
 import argparse

@@ -5,6 +5,7 @@ The script runs a GridSearchCV for each model, evaluates the best estimator usin
 metrics (accuracy, precision, recall, ROC-AUC), logs results to MLflow, and saves the chosen
 model artifact plus a `features.json` file with the training feature order.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -24,38 +25,33 @@ from sklearn.preprocessing import StandardScaler
 
 def train(data_path: Path, model_dir: Path, cv: int = 5, random_state: int = 42):
     df = pd.read_csv(data_path)
-    X = df.drop(columns=['target'])
-    y = df['target']
+    X = df.drop(columns=["target"])
+    y = df["target"]
 
     model_dir.mkdir(parents=True, exist_ok=True)
 
     # Define candidates and hyperparameter grids
     rf = RandomForestClassifier(random_state=random_state)
-    lr = Pipeline([('scaler', StandardScaler()), ('clf', LogisticRegression(max_iter=2000, solver='liblinear'))])
+    lr = Pipeline([("scaler", StandardScaler()), ("clf", LogisticRegression(max_iter=2000, solver="liblinear"))])
 
     candidates = {
-        'random_forest': (rf, {
-            'n_estimators': [50, 100],
-            'max_depth': [None, 5, 10]
-        }),
-        'logistic_regression': (lr, {
-            'clf__C': [0.01, 0.1, 1.0, 10.0]
-        })
+        "random_forest": (rf, {"n_estimators": [50, 100], "max_depth": [None, 5, 10]}),
+        "logistic_regression": (lr, {"clf__C": [0.01, 0.1, 1.0, 10.0]}),
     }
 
-    mlflow.set_experiment('heart-disease')
+    mlflow.set_experiment("heart-disease")
 
     results = {}
     best_overall = None
-    best_score = -float('inf')
+    best_score = -float("inf")
 
     outer_cv = StratifiedKFold(n_splits=cv, shuffle=True, random_state=random_state)
 
     for name, (estimator, param_grid) in candidates.items():
         with mlflow.start_run(run_name=name):
-            mlflow.log_param('model', name)
+            mlflow.log_param("model", name)
             # Grid search to tune hyperparameters (optimize ROC-AUC)
-            gs = GridSearchCV(estimator=estimator, param_grid=param_grid, scoring='roc_auc', cv=cv, n_jobs=-1)
+            gs = GridSearchCV(estimator=estimator, param_grid=param_grid, scoring="roc_auc", cv=cv, n_jobs=-1)
             gs.fit(X, y)
 
             best = gs.best_estimator_
@@ -63,49 +59,42 @@ def train(data_path: Path, model_dir: Path, cv: int = 5, random_state: int = 42)
             mlflow.log_params(best_params)
 
             # Evaluate best estimator using cross-validated metrics
-            scoring = ['accuracy', 'precision', 'recall', 'roc_auc']
+            scoring = ["accuracy", "precision", "recall", "roc_auc"]
             cv_res = cross_validate(best, X, y, cv=outer_cv, scoring=scoring, n_jobs=-1, return_train_score=False)
 
-            metrics_mean = {f'{k}_mean': float(cv_res[f'test_{k}'].mean()) for k in scoring}
+            metrics_mean = {f"{k}_mean": float(cv_res[f"test_{k}"].mean()) for k in scoring}
             for k, v in metrics_mean.items():
                 mlflow.log_metric(k, v)
 
             # Log the model artifact
-            mlflow.sklearn.log_model(best, artifact_path='model')
+            mlflow.sklearn.log_model(best, artifact_path="model")
 
             # Save local copy and features ordering
-            model_path = model_dir / f'{name}.joblib'
+            model_path = model_dir / f"{name}.joblib"
             joblib.dump(best, model_path)
-            features_path = model_dir / f'{name}_features.json'
+            features_path = model_dir / f"{name}_features.json"
             # try to get feature order from estimator attribute, otherwise use X.columns
-            feature_order = getattr(getattr(best, 'feature_names_in_', None), 'tolist', lambda: list(X.columns))()
+            _ = getattr(getattr(best, "feature_names_in_", None), "tolist", lambda: list(X.columns))()
             # If pipeline, extract from last estimator if available
-            if hasattr(best, 'named_steps') and 'clf' in getattr(best, 'named_steps'):
-                inner = best.named_steps['clf']
-                feature_order = list(getattr(inner, 'feature_names_in_', list(X.columns)))
+            if hasattr(best, "named_steps") and "clf" in getattr(best, "named_steps"):
+                inner = best.named_steps["clf"]
+                # Feature order stored in model itself for inference
+                _ = list(getattr(inner, "feature_names_in_", list(X.columns)))
 
-            with open(features_path, 'w', encoding='utf8') as fh:
+            with open(features_path, "w", encoding="utf8") as fh:
                 json.dump(list(X.columns), fh)
 
             # Track selection
-            results[name] = {
-                'best_params': best_params,
-                'metrics': metrics_mean,
-                'model_path': str(model_path)
-            }
+            results[name] = {"best_params": best_params, "metrics": metrics_mean, "model_path": str(model_path)}
 
             # choose best by ROC-AUC
-            if metrics_mean['roc_auc_mean'] > best_score:
-                best_score = metrics_mean['roc_auc_mean']
+            if metrics_mean["roc_auc_mean"] > best_score:
+                best_score = metrics_mean["roc_auc_mean"]
                 best_overall = name
 
     # Summarize and save a small selection metadata file
-    summary = {
-        'best_model': best_overall,
-        'best_score': best_score,
-        'results': results
-    }
-    with open(model_dir / 'selection_summary.json', 'w', encoding='utf8') as fh:
+    summary = {"best_model": best_overall, "best_score": best_score, "results": results}
+    with open(model_dir / "selection_summary.json", "w", encoding="utf8") as fh:
         json.dump(summary, fh, indent=2)
 
     return summary
@@ -113,13 +102,13 @@ def train(data_path: Path, model_dir: Path, cv: int = 5, random_state: int = 42)
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('--data', required=True)
-    p.add_argument('--model-dir', required=True)
-    p.add_argument('--cv', type=int, default=5)
+    p.add_argument("--data", required=True)
+    p.add_argument("--model-dir", required=True)
+    p.add_argument("--cv", type=int, default=5)
     args = p.parse_args()
     res = train(Path(args.data), Path(args.model_dir), cv=args.cv)
-    print('selection summary:', res)
+    print("selection summary:", res)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

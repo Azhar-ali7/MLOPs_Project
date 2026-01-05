@@ -1,233 +1,241 @@
-# Heart Disease Prediction — Complete MLOps Pipeline
+# 🫀 Heart Disease Prediction - MLOps Pipeline
 
-[![CI/CD Pipeline](https://github.com/YOUR_USERNAME/MLOPs_Project/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/YOUR_USERNAME/MLOPs_Project/actions)
-[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-3110/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
+[![Docker](https://img.shields.io/badge/Docker-ready-blue.svg)](https://www.docker.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A production-ready MLOps pipeline for predicting heart disease risk using the UCI Heart Disease dataset. This project demonstrates end-to-end machine learning workflow including data acquisition, exploratory analysis, model training with experiment tracking, automated testing, CI/CD, containerization, Kubernetes orchestration, and cloud deployment on Azure.
+A complete MLOps pipeline for heart disease prediction with Docker deployment, full-stack monitoring (ELK + Prometheus/Grafana), and CI/CD automation.
 
-## 🎯 Project Overview
+## 📑 Table of Contents
 
-**Problem Statement:** Build a machine learning classifier to predict the risk of heart disease based on patient health data, and deploy the solution as a cloud-ready, monitored API.
+- [Overview](#-overview)
+- [Architecture](#-architecture)
+- [Features](#-features)
+- [Quick Start](#-quick-start)
+- [Project Structure](#-project-structure)
+- [Development Guide](#-development-guide)
+- [Deployment](#-deployment)
+- [Monitoring](#-monitoring)
+- [API Documentation](#-api-documentation)
+- [Testing](#-testing)
+- [Contributing](#-contributing)
 
-**Key Features:**
-- ✅ Comprehensive EDA with professional visualizations
-- ✅ Two ML models (Random Forest & Logistic Regression) with hyperparameter tuning
-- ✅ MLflow experiment tracking and model versioning
-- ✅ Automated testing with pytest (unit + integration tests)
-- ✅ CI/CD pipeline with GitHub Actions
-- ✅ Docker containerization for reproducibility
-- ✅ Kubernetes deployment manifests (Docker Desktop compatible)
-- ✅ Azure Container Instances deployment (budget-friendly cloud)
-- ✅ Azure Application Insights monitoring and logging
-- ✅ Prometheus metrics endpoint
-- ✅ FastAPI for high-performance API serving
+## 🎯 Overview
 
-## 📊 Architecture
+This project demonstrates a production-ready MLOps pipeline for predicting heart disease using machine learning. It covers the complete ML lifecycle:
 
-```mermaid
-graph TB
-    subgraph DataPipeline [Data Pipeline]
-        A[UCI Dataset] -->|download| B[Raw Data]
-        B -->|process| C[Processed Data]
-    end
-    
-    subgraph Training [Model Training]
-        C -->|train| D[GridSearchCV]
-        D --> E[Random Forest]
-        D --> F[Logistic Regression]
-        E --> G[MLflow Tracking]
-        F --> G
-        G --> H[Best Model]
-    end
-    
-    subgraph CICD [CI/CD Pipeline]
-        I[GitHub Push] --> J[GitHub Actions]
-        J --> K[Lint & Test]
-        K --> L[Build Docker]
-        L --> M[Push Registry]
-    end
-    
-    subgraph Deploy [Deployment]
-        M --> N[Docker Desktop K8s]
-        M --> O[Azure ACI]
-        H --> N
-        H --> O
-    end
-    
-    subgraph Serving [API Serving]
-        N --> P[FastAPI]
-        O --> P
-        P --> Q[/predict]
-        P --> R[/health]
-        P --> S[/metrics]
-    end
-    
-    subgraph Monitor [Monitoring]
-        S --> T[Prometheus]
-        P --> U[Azure Insights]
-        U --> V[Dashboard]
-        T --> V
-    end
-```
+1. **Data Acquisition & EDA** - Download and analyze the UCI Heart Disease dataset
+2. **Feature Engineering & Modeling** - Train and compare multiple models with hyperparameter tuning
+3. **Experiment Tracking** - Track experiments with MLflow
+4. **Model Packaging** - Package models for reproducibility
+5. **CI/CD Pipeline** - Automated testing with GitHub Actions
+6. **Containerization** - Docker for consistent deployment
+7. **Production Deployment** - Docker Compose & Kubernetes (Minikube)
+8. **Monitoring & Logging** - ELK stack + Prometheus/Grafana
 
-## 📁 Project Structure
+## 🏗 Architecture
+
+### High-Level Architecture
 
 ```
-MLOPs_Project/
-├── .github/
-│   └── workflows/
-│       └── ci.yml                    # CI/CD pipeline
-├── azure/
-│   ├── deploy-aci.sh                # Azure deployment script
-│   ├── aci-deployment.yaml          # ACI configuration
-│   └── README-AZURE.md              # Azure deployment guide
-├── k8s/
-│   ├── deployment.yaml              # Kubernetes deployment
-│   ├── service.yaml                 # Kubernetes service
-│   ├── configmap.yaml               # Configuration
-│   ├── namespace.yaml               # Namespace definition
-│   └── README-K8S.md                # Kubernetes guide
-├── notebooks/
-│   ├── 01_EDA_Heart_Disease.ipynb   # Exploratory analysis
-│   └── 02_Feature_Engineering.ipynb # Model development
-├── monitoring/
-│   ├── azure-monitor-setup.md       # Monitoring setup guide
-│   └── dashboard-config.json        # Dashboard configuration
-├── docs/
-│   ├── ARCHITECTURE.md              # Architecture documentation
-│   ├── AZURE_CLI_COMPLETE_GUIDE.md  # Complete Azure CLI tutorial
-│   ├── AZURE_QUICKSTART.md          # Quick Azure deployment guide
-│   ├── DEPLOYMENT_INSTRUCTIONS.md   # Deployment instructions
-│   ├── FINAL_REPORT_TEMPLATE.md     # Report template
-│   └── VIDEO_GUIDE.md               # Video recording guide
-├── scripts/
-│   ├── setup.sh                     # Automated setup
-│   └── run-full-pipeline.sh         # End-to-end pipeline
-├── src/
-│   ├── api.py                       # FastAPI application
-│   ├── data.py                      # Data preprocessing
-│   ├── download_data.py             # Data acquisition
-│   ├── model.py                     # Model wrapper
-│   └── train.py                     # Training pipeline
-├── tests/
-│   ├── test_api.py                  # API tests
-│   ├── test_data.py                 # Data processing tests
-│   ├── test_model.py                # Model tests
-│   ├── test_train.py                # Training tests
-│   └── test_integration.py          # Integration tests
-├── .dockerignore                    # Docker ignore rules
-├── .flake8                          # Linting configuration
-├── pyproject.toml                   # Python project config
-├── Dockerfile                       # Docker image definition
-├── docker-compose.yml               # Docker Compose configuration
-├── requirements.txt                 # Python dependencies
-├── conda-env.yml                    # Conda environment
-└── README.md                        # This file
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           MLOps Pipeline                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌───────────┐    ┌───────────┐    ┌───────────┐    ┌───────────┐          │
+│  │   Data    │───▶│   Train   │───▶│   Model   │───▶│   API     │          │
+│  │  Ingestion│    │  Pipeline │    │  Registry │    │  Server   │          │
+│  └───────────┘    └───────────┘    └───────────┘    └───────────┘          │
+│        │               │                                   │                 │
+│        ▼               ▼                                   ▼                 │
+│  ┌───────────┐    ┌───────────┐                      ┌───────────┐          │
+│  │    EDA    │    │   MLflow  │                      │ Prometheus│          │
+│  │ Notebooks │    │  Tracking │                      │  Metrics  │          │
+│  └───────────┘    └───────────┘                      └───────────┘          │
+│                                                            │                 │
+│                                                            ▼                 │
+│                                                      ┌───────────┐          │
+│                                                      │  Grafana  │          │
+│                                                      │ Dashboard │          │
+│                                                      └───────────┘          │
+│                                                                              │
+│  ┌───────────────────────────────────────────────────────────────┐          │
+│  │                     ELK Stack (Logging)                        │          │
+│  │  ┌─────────┐    ┌───────────┐    ┌─────────┐                  │          │
+│  │  │ Fluentd │───▶│Elasticsearch│───▶│ Kibana  │                  │          │
+│  │  └─────────┘    └───────────┘    └─────────┘                  │          │
+│  └───────────────────────────────────────────────────────────────┘          │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+### Docker Compose Services
+
+| Service | Port | Description |
+|---------|------|-------------|
+| API | 8000 | FastAPI prediction service |
+| MLflow | 5000 | Experiment tracking UI |
+| Elasticsearch | 9200 | Log storage |
+| Kibana | 5601 | Log visualization |
+| Fluentd | 24224 | Log collection |
+| Prometheus | 9090 | Metrics collection |
+| Grafana | 3000 | Metrics dashboards |
+| Alertmanager | 9093 | Alert management |
+
+## ✨ Features
+
+### Machine Learning
+- ✅ Binary classification for heart disease prediction
+- ✅ Multiple models (Random Forest, Logistic Regression)
+- ✅ Hyperparameter tuning with GridSearchCV
+- ✅ Cross-validation for robust evaluation
+- ✅ Feature importance analysis
+
+### MLOps
+- ✅ Experiment tracking with MLflow
+- ✅ Model versioning and registry
+- ✅ Reproducible environments
+- ✅ CI/CD with GitHub Actions
+- ✅ Docker containerization
+
+### Monitoring & Observability
+- ✅ Structured JSON logging
+- ✅ Centralized logging with ELK stack
+- ✅ Prometheus metrics collection
+- ✅ Grafana dashboards
+- ✅ Alerting with Alertmanager
+
+### API
+- ✅ FastAPI with async support
+- ✅ OpenAPI documentation
+- ✅ Health check endpoints
+- ✅ Batch prediction support
+- ✅ Request validation
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Python 3.11+
-- Docker Desktop
+- Docker & Docker Compose
 - Git
-- (Optional) Azure CLI for cloud deployment
 
-### Option 1: Automated Setup
+### Option 1: Docker Compose (Recommended)
 
 ```bash
-# Clone repository
+# Clone the repository
 git clone https://github.com/YOUR_USERNAME/MLOPs_Project.git
 cd MLOPs_Project
 
-# Run automated setup script
-chmod +x scripts/setup.sh
-./scripts/setup.sh
+# Start the full stack
+./scripts/deploy-local.sh start
+
+# Test the API
+./scripts/test-api.sh
 ```
 
-### Option 2: Manual Setup
+**Access the services:**
+- API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
+- MLflow: http://localhost:5000
+- Kibana: http://localhost:5601
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3000 (admin/admin123)
+
+### Option 2: Local Development
 
 ```bash
-# 1. Create virtual environment
-python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+# Create conda environment
+conda env create -f conda-env.yml
+conda activate heart-disease-mlops
 
-# 2. Install dependencies
+# Download data
+python -m src.download_data
+
+# Train models
+python -m src.train
+
+# Run API
+uvicorn src.api:app --reload --port 8000
+```
+
+## 📁 Project Structure
+
+```
+MLOPs_Project/
+├── src/
+│   ├── api.py                       # FastAPI application
+│   ├── api_local.py                 # API with full logging
+│   ├── data.py                      # Data loading utilities
+│   ├── model.py                     # Model training/prediction
+│   ├── train.py                     # Training script
+│   └── download_data.py             # Data download script
+├── notebooks/
+│   ├── 01_EDA_Heart_Disease.ipynb   # Exploratory Data Analysis
+│   └── 02_Feature_Engineering_and_Modeling.ipynb
+├── tests/
+│   ├── test_api.py                  # API tests
+│   ├── test_data.py                 # Data module tests
+│   ├── test_model.py                # Model tests
+│   └── test_integration.py          # Integration tests
+├── k8s/
+│   ├── local/                       # Minikube manifests
+│   ├── deployment.yaml              # Kubernetes deployment
+│   ├── service.yaml                 # Kubernetes service
+│   └── README-K8S.md                # K8s deployment guide
+├── monitoring/
+│   ├── fluentd/                     # Fluentd configuration
+│   ├── prometheus/                  # Prometheus configuration
+│   ├── grafana/                     # Grafana dashboards
+│   └── alertmanager/                # Alertmanager configuration
+├── scripts/
+│   ├── deploy-local.sh              # Local deployment script
+│   ├── deploy-k8s-local.sh          # Minikube deployment
+│   └── test-api.sh                  # API testing script
+├── data/
+│   ├── raw/                         # Raw data
+│   └── processed/                   # Processed data
+├── models/                          # Saved models
+├── docs/                            # Documentation
+├── docker-compose.local.yml         # Full stack deployment
+├── Dockerfile.local                 # Docker image for local
+├── requirements.txt                 # Python dependencies
+├── requirements-local.txt           # Local deployment deps
+└── README.md                        # This file
+```
+
+## 💻 Development Guide
+
+### Setting Up Development Environment
+
+```bash
+# Using conda
+conda env create -f conda-env.yml
+conda activate heart-disease-mlops
+
+# Or using pip
 pip install -r requirements.txt
-
-# 3. Download and process data
-   python -m src.download_data --output data/raw/heart.csv
-   python -m src.data --input data/raw/heart.csv --output data/processed/heart_processed.csv
-
-# 4. Train models
-python -m src.train --data data/processed/heart_processed.csv --model-dir models --cv 5
-
-# 5. Run tests
-pytest tests/ -v --cov=src
-
-# 6. Start API server
-   uvicorn src.api:app --host 0.0.0.0 --port 8000
 ```
 
-## 🔬 Exploratory Data Analysis
+### Running the Notebooks
 
-Comprehensive EDA notebooks are provided in the `notebooks/` directory:
-
-### 01_EDA_Heart_Disease.ipynb
-- Dataset overview and statistics
-- Missing value analysis
-- Feature distributions (histograms, box plots)
-- Correlation heatmap
-- Class balance visualization
-- Outlier detection
-
-### 02_Feature_Engineering_and_Modeling.ipynb
-- Feature engineering strategies
-- Model comparison (Random Forest vs Logistic Regression)
-- Hyperparameter tuning with GridSearchCV
-- Cross-validation results
-- ROC curves and confusion matrices
-- Feature importance analysis
-
-**To view notebooks:**
 ```bash
+# Start Jupyter
 jupyter notebook notebooks/
 ```
 
-## 🤖 Model Training
+### Training Models
 
-The training pipeline supports two models with automated hyperparameter tuning:
-
-**Random Forest:**
-- Parameters: n_estimators, max_depth, min_samples_split
-- Optimization: ROC-AUC score
-- Cross-validation: 5-fold stratified
-
-**Logistic Regression:**
-- Pipeline: StandardScaler + LogisticRegression
-- Parameters: C (regularization), penalty (L1/L2)
-- Solver: liblinear
-
-**MLflow Tracking:**
 ```bash
-# View experiments in MLflow UI
-mlflow ui
+# Train with MLflow tracking
+python -m src.train
 
-# Access at: http://localhost:5000
+# View experiments
+mlflow ui --port 5000
 ```
 
-All experiments are logged with:
-- Hyperparameters
-- Cross-validation metrics (accuracy, precision, recall, ROC-AUC)
-- Model artifacts
-- Feature importance (for Random Forest)
-
-## 🧪 Testing
-
-Comprehensive test suite with pytest:
+### Running Tests
 
 ```bash
 # Run all tests
@@ -235,321 +243,174 @@ pytest tests/ -v
 
 # Run with coverage
 pytest tests/ --cov=src --cov-report=html
-
-# Run specific test file
-pytest tests/test_api.py -v
-
-# Run integration tests only
-pytest tests/test_integration.py -v
 ```
 
-**Test Coverage:**
-- Unit tests for data processing
-- Model wrapper tests
-- Training pipeline tests
-- API endpoint tests
-- Integration tests (full pipeline)
+## 🚢 Deployment
 
-## 🐳 Docker Deployment
-
-### Build and Run Locally
+### Docker Compose Deployment
 
 ```bash
-# Build Docker image
-docker build -t heart-disease-api:latest .
-
-# Run container
-docker run -d -p 8000:8000 --name heart-api heart-disease-api:latest
-
-# Test API
-curl http://localhost:8000/health
-curl -X POST http://localhost:8000/predict \
-  -H "Content-Type: application/json" \
-  -d '{"data": [{"age": 55, "sex": 1, "cp": 3, "trestbps": 140, "chol": 230, "fbs": 0, "restecg": 0, "thalach": 150, "exang": 0, "oldpeak": 1.0, "slope": 0, "ca": 0, "thal": 3}]}'
-```
-
-### Docker Compose
-
-```bash
-# Start API and MLflow server
-docker-compose up -d
+# Start all services
+./scripts/deploy-local.sh start
 
 # View logs
-docker-compose logs -f
+./scripts/deploy-local.sh logs
 
 # Stop services
-docker-compose down
-```
-
-## ☸️ Kubernetes Deployment
-
-Deploy to Docker Desktop Kubernetes or any Kubernetes cluster:
-
-```bash
-# Enable Kubernetes in Docker Desktop (Settings → Kubernetes → Enable)
-
-# Deploy all resources
-kubectl apply -f k8s/
-
-# Check status
-kubectl get all
-kubectl get pods
-kubectl get services
-
-# Test API
-kubectl port-forward service/heart-disease-api-service 8080:80
-curl http://localhost:8080/health
-
-# View logs
-kubectl logs -l app=heart-disease-api -f
-
-# Scale deployment
-kubectl scale deployment heart-disease-api --replicas=3
+./scripts/deploy-local.sh stop
 
 # Clean up
-kubectl delete -f k8s/
+./scripts/deploy-local.sh clean
 ```
 
-**See [k8s/README-K8S.md](k8s/README-K8S.md) for detailed instructions.**
-
-## ☁️ Azure Cloud Deployment
-
-Deploy to Azure Container Instances (budget-friendly option):
+### Kubernetes Deployment (Minikube)
 
 ```bash
-# Set credentials
-export DOCKER_USERNAME="your-dockerhub-username"
-export DOCKER_PASSWORD="your-dockerhub-password"
+# Deploy to Minikube
+./scripts/deploy-k8s-local.sh deploy
 
-# Run deployment script
-chmod +x azure/deploy-aci.sh
-./azure/deploy-aci.sh
+# Check status
+./scripts/deploy-k8s-local.sh status
 
-# The script will:
-# 1. Create Azure Resource Group
-# 2. Build and push Docker image
-# 3. Deploy to Azure Container Instances
-# 4. Set up Application Insights (optional)
-# 5. Provide API URL
+# Get service URL
+minikube service heart-disease-api-service -n heart-disease --url
+
+# Delete deployment
+./scripts/deploy-k8s-local.sh delete
 ```
 
-**Manual deployment:**
-```bash
-# Login to Azure
-az login
+See [k8s/README-K8S.md](k8s/README-K8S.md) for detailed Kubernetes instructions.
 
-# Create resource group
-az group create --name mlops-heart-disease-rg --location eastus
+## 📊 Monitoring
 
-# Deploy container
-az container create \
-  --resource-group mlops-heart-disease-rg \
-  --name heart-disease-api \
-  --image YOUR_USERNAME/heart-disease-api:latest \
-  --cpu 1 --memory 1.5 \
-  --dns-name-label heart-disease-api-$(date +%s) \
-  --ports 8000
-```
+### Logging (ELK Stack)
 
-**See [azure/README-AZURE.md](azure/README-AZURE.md) for complete guide.**
+Access Kibana at http://localhost:5601 to:
+- Search and filter logs
+- Create log visualizations
+- Set up log-based alerts
 
-## 📊 Monitoring & Logging
+### Metrics (Prometheus + Grafana)
 
-### Azure Application Insights
+**Prometheus** (http://localhost:9090):
+- Query metrics
+- View targets and alerts
+- Explore metric labels
 
-```bash
-# Create Application Insights
-az monitor app-insights component create \
-  --app heart-disease-api-insights \
-  --location eastus \
-  --resource-group mlops-heart-disease-rg
+**Grafana** (http://localhost:3000):
+- Pre-configured API dashboard
+- Request latency graphs
+- Prediction distribution charts
+- Login: admin/admin123
 
-# Get connection string
-az monitor app-insights component show \
-  --app heart-disease-api-insights \
-  --resource-group mlops-heart-disease-rg \
-  --query "connectionString"
-```
+### Available Metrics
 
-### Prometheus Metrics
+| Metric | Type | Description |
+|--------|------|-------------|
+| `api_requests_total` | Counter | Total requests by endpoint |
+| `api_request_latency_seconds` | Histogram | Request latency distribution |
+| `api_predictions_total` | Counter | Predictions by result |
+| `api_prediction_probability` | Histogram | Prediction probabilities |
 
-```bash
-# Access metrics endpoint
-curl http://localhost:8000/metrics
-
-# Metrics include:
-# - predict_requests_total: Total prediction requests
-# - Custom application metrics
-```
-
-**See [monitoring/azure-monitor-setup.md](monitoring/azure-monitor-setup.md) for setup details.**
-
-## 🔄 CI/CD Pipeline
-
-GitHub Actions workflow automates:
-
-1. **Linting**: Code quality checks with flake8 and black
-2. **Testing**: Run pytest with coverage reporting
-3. **Training**: Train models on processed data
-4. **Building**: Create Docker image
-5. **Deployment**: Push to container registry
-
-**Trigger:** Automatic on push to main/master branch
-
-**View:** GitHub → Actions tab
-
-## 📖 API Documentation
+## 📚 API Documentation
 
 ### Endpoints
 
-#### GET /health
-Health check endpoint
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | Welcome message |
+| `/health` | GET | Health check |
+| `/predict` | POST | Single prediction |
+| `/predict/batch` | POST | Batch predictions |
+| `/metrics` | GET | Prometheus metrics |
+| `/docs` | GET | Swagger UI |
 
-**Response:**
-```json
-{
-  "status": "ok",
-  "timestamp": "2026-01-05T10:30:00",
-  "model_loaded": true
-}
-```
-
-#### POST /predict
-Make heart disease predictions
-
-**Request:**
-```json
-{
-  "data": [{
-    "age": 55,
-    "sex": 1,
-    "cp": 3,
-    "trestbps": 140,
-    "chol": 230,
-    "fbs": 0,
-    "restecg": 0,
-    "thalach": 150,
-    "exang": 0,
-    "oldpeak": 1.0,
-    "slope": 0,
-    "ca": 0,
-    "thal": 3
-  }]
-}
-```
-
-**Response:**
-```json
-{
-  "predictions": [
-    {
-      "prediction": 1,
-      "probability": 0.85
-    }
-  ],
-  "metadata": {
-    "num_samples": 1,
-    "duration_seconds": 0.023,
-    "timestamp": "2026-01-05T10:30:00"
-  }
-}
-```
-
-#### GET /metrics
-Prometheus metrics endpoint
-
-### Interactive API Docs
-
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
-
-## 📈 Performance Metrics
-
-**Model Performance (Test Set):**
-- Random Forest: ROC-AUC = 0.91, Accuracy = 0.87
-- Logistic Regression: ROC-AUC = 0.89, Accuracy = 0.85
-
-**API Performance:**
-- Average response time: <50ms
-- Throughput: >100 requests/second
-- Container resources: 1 vCPU, 1.5GB RAM
-
-## 🛠️ Development
-
-### Code Quality
+### Example Request
 
 ```bash
-# Format code
-black src/ tests/
-
-# Lint code
-flake8 src/ tests/
-
-# Type checking (optional)
-mypy src/
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data": [{
+      "age": 55,
+      "sex": 1,
+      "cp": 2,
+      "trestbps": 130,
+      "chol": 250,
+      "fbs": 0,
+      "restecg": 0,
+      "thalach": 150,
+      "exang": 0,
+      "oldpeak": 1.0,
+      "slope": 1,
+      "ca": 0,
+      "thal": 2
+    }]
+  }'
 ```
 
-### Adding New Features
+### Response Format
 
-1. Create feature branch
-2. Implement changes with tests
-3. Run tests and linting
-4. Create pull request
-5. CI/CD runs automatically
+```json
+{
+  "predictions": [1],
+  "probabilities": [[0.25, 0.75]],
+  "model": "random_forest"
+}
+```
 
-## 🔒 Security
+## 🧪 Testing
 
-- No hardcoded credentials
-- Secrets via environment variables
-- Docker image scanning (optional)
-- Regular dependency updates
-- Azure Key Vault for production secrets
+### Unit Tests
 
-## 📚 Additional Documentation
+```bash
+pytest tests/test_data.py -v
+pytest tests/test_model.py -v
+```
 
-### Core Documentation
-- [Architecture Documentation](docs/ARCHITECTURE.md)
-- [Video Recording Guide](docs/VIDEO_GUIDE.md)
+### Integration Tests
+
+```bash
+pytest tests/test_api.py -v
+pytest tests/test_integration.py -v
+```
+
+### API Tests
+
+```bash
+# Using test script
+./scripts/test-api.sh
+
+# Using curl
+curl http://localhost:8000/health
+```
+
+## 📖 Documentation
+
+- [Local Deployment Guide](docs/LOCAL_DEPLOYMENT.md)
+- [Kubernetes Deployment](k8s/README-K8S.md)
+- [Video Demonstration Guide](docs/VIDEO_GUIDE.md)
 - [Final Report Template](docs/FINAL_REPORT_TEMPLATE.md)
-
-### Azure Deployment
-- **[Azure CLI Complete Guide](docs/AZURE_CLI_COMPLETE_GUIDE.md)** - Comprehensive Azure CLI tutorial
-- **[Azure Quick Start Guide](docs/AZURE_QUICKSTART.md)** - 30-minute deployment walkthrough
-- [Azure Deployment Guide](azure/README-AZURE.md) - Detailed ACI deployment
-- [Monitoring Setup](monitoring/azure-monitor-setup.md) - Application Insights configuration
-
-### Kubernetes Deployment
-- [Kubernetes Guide](k8s/README-K8S.md) - Local Kubernetes deployment
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## 📝 License
+## 📄 License
 
-This project is licensed under the MIT License.
-
-## 👥 Authors
-
-- **Your Name** - MLOps Assignment Project
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
 - UCI Machine Learning Repository for the Heart Disease dataset
 - FastAPI for the excellent web framework
 - MLflow for experiment tracking
-- Azure for cloud infrastructure
-
-## 📞 Support
-
-For questions or issues:
-- Open an issue on GitHub
-- Email: your-email@example.com
+- The open-source community for amazing tools
 
 ---
 
-**Note:** This is an educational project demonstrating MLOps best practices. For production use, additional security hardening, monitoring, and compliance measures should be implemented.
+**Made with ❤️ for MLOps learning**

@@ -1,22 +1,205 @@
 version: '3.8'
+
 services:
+  # ================== ML API ==================
   api:
     build: .
+    container_name: heart-disease-api
     ports:
       - "8000:8000"
     volumes:
-      - ./models:/app/models
-      - ./mlruns:/app/mlruns
+      - ./models:/app/models:ro
+      - ./logs:/app/logs
     environment:
-      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MODEL_PATH=/app/models/random_forest.joblib
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+      - ELASTICSEARCH_HOST=elasticsearch
+      - ELASTICSEARCH_PORT=9200
     depends_on:
-      - mlflow
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - mlops-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    labels:
+      - "logging=promtail"
+      - "app=heart-disease-api"
+
+  # ================== MLflow ==================
   mlflow:
-    image: quay.io/mlflow/mlflow:2.7.0
-    environment:
-      - MLFLOW_SERVER_FILESTORE=/mlruns
-      - MLFLOW_SERVER_DEFAULT_ARTIFACT_ROOT=/mlruns
+    image: ghcr.io/mlflow/mlflow:v2.9.2
+    container_name: mlflow-server
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlruns/mlflow.db --default-artifact-root /mlruns
     ports:
-      - "5000:5000"
+      - "5050:5000"
     volumes:
       - ./mlruns:/mlruns
+    networks:
+      - mlops-network
+    restart: unless-stopped
+
+  # ================== LOGGING STACK ==================
+  
+  # Elasticsearch - Log storage and search
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - cluster.name=mlops-logs
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - mlops-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  # Kibana - Log visualization
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - XPACK_SECURITY_ENABLED=false
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - mlops-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  # Fluentd - Log collection and forwarding
+  fluentd:
+    build:
+      context: ./monitoring/fluentd
+      dockerfile: Dockerfile
+    container_name: fluentd
+    volumes:
+      - ./monitoring/fluentd/fluent.conf:/fluentd/etc/fluent.conf:ro
+      - ./logs:/app/logs:ro
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - mlops-network
+    restart: unless-stopped
+
+  # ================== MONITORING STACK ==================
+  
+  # Prometheus - Metrics collection
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - mlops-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Grafana - Metrics visualization
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - mlops-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ================== ALERTING (Optional) ==================
+  
+  # Alertmanager - Alert handling
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    volumes:
+      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    ports:
+      - "9093:9093"
+    networks:
+      - mlops-network
+    restart: unless-stopped
+
+networks:
+  mlops-network:
+    driver: bridge
+    name: mlops-network
+
+volumes:
+  elasticsearch-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  alertmanager-data:
+    driver: local

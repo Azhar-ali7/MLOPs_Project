@@ -52,8 +52,7 @@ docs/
 screenshots/
 Screenshots/
 
-# Azure
-azure/
+# Kubernetes manifests
 k8s/
 
 # CI/CD

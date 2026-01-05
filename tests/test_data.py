@@ -10,8 +10,8 @@ def test_load_and_process_basic():
 """
     df = pd.read_csv(StringIO(csv), header=None)
     # write to temp file
-    tmp = 'tests/tmp_heart.csv'
+    tmp = "tests/tmp_heart.csv"
     df.to_csv(tmp, index=False, header=False)
     processed = load_and_process(tmp)
-    assert 'target' in processed.columns
+    assert "target" in processed.columns
     assert processed.shape[0] == 2
