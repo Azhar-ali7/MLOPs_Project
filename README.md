@@ -1,408 +1,259 @@
-# 🫀 Heart Disease Prediction - MLOps Pipeline
+# Assignment 1 Group 49 - MLOps Pipeline
 
-[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-3110/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
-[![Docker](https://img.shields.io/badge/Docker-ready-blue.svg)](https://www.docker.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+A complete MLOps pipeline for heart disease prediction with Docker deployment, MLflow experiment tracking, and Prometheus/Grafana monitoring.
 
-A complete MLOps pipeline for heart disease prediction with Docker and Kubernetes deployment, Prometheus/Grafana monitoring, and CI/CD automation.
+## Features
 
-## 📑 Table of Contents
+- **ML Models**: Random Forest & Logistic Regression with hyperparameter tuning
+- **API**: FastAPI with health checks and prediction endpoints
+- **Experiment Tracking**: MLflow for model versioning and metrics
+- **Monitoring**: Prometheus metrics + Grafana dashboards
+- **UI**: Streamlit web interface for training and predictions
+- **Containerization**: Docker Compose for easy deployment
 
-- [Overview](#-overview)
-- [Architecture](#-architecture)
-- [Features](#-features)
-- [Quick Start](#-quick-start)
-- [Project Structure](#-project-structure)
-- [Development Guide](#-development-guide)
-- [Deployment](#-deployment)
-- [Monitoring](#-monitoring)
-- [API Documentation](#-api-documentation)
-- [Testing](#-testing)
-- [Contributing](#-contributing)
+## Prerequisites
 
-## 🎯 Overview
+Before running the project, ensure you have:
 
-This project demonstrates a production-ready MLOps pipeline for predicting heart disease using machine learning. It covers the complete ML lifecycle:
+1. **Docker Desktop** installed and running
+   - Download from: https://www.docker.com/products/docker-desktop
+   - Verify: `docker --version` and `docker compose version`
 
-1. **Data Acquisition & EDA** - Download and analyze the UCI Heart Disease dataset
-2. **Feature Engineering & Modeling** - Train and compare multiple models with hyperparameter tuning
-3. **Experiment Tracking** - Track experiments with MLflow
-4. **Model Packaging** - Package models for reproducibility
-5. **CI/CD Pipeline** - Automated testing with GitHub Actions
-6. **Containerization** - Docker for consistent deployment
-7. **Production Deployment** - Docker Compose & Kubernetes (Minikube)
-8. **Monitoring & Logging** - Prometheus/Grafana for metrics visualization
+2. **Kubernetes enabled** in Docker Desktop (optional, for K8s deployment)
+   - Open Docker Desktop → Settings → Kubernetes
+   - Check "Enable Kubernetes" → Apply & Restart
 
-## 🏗 Architecture
+3. **Python 3.11+** (for local development only)
+   - Verify: `python --version`
 
-### High-Level Architecture
+4. **Git** installed
+   - Verify: `git --version`
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           MLOps Pipeline                                     │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌───────────┐    ┌───────────┐    ┌───────────┐    ┌───────────┐          │
-│  │   Data    │───▶│   Train   │───▶│   Model   │───▶│   API     │          │
-│  │  Ingestion│    │  Pipeline │    │  Registry │    │  Server   │          │
-│  └───────────┘    └───────────┘    └───────────┘    └───────────┘          │
-│        │               │                                   │                 │
-│        ▼               ▼                                   ▼                 │
-│  ┌───────────┐    ┌───────────┐                      ┌───────────┐          │
-│  │    EDA    │    │   MLflow  │                      │ Prometheus│          │
-│  │ Notebooks │    │  Tracking │                      │  Metrics  │          │
-│  └───────────┘    └───────────┘                      └───────────┘          │
-│                                                            │                 │
-│                                                            ▼                 │
-│                                                      ┌───────────┐          │
-│                                                      │  Grafana  │          │
-│                                                      │ Dashboard │          │
-│                                                      └───────────┘          │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+## Quick Start
 
-### Docker Compose Services
-
-| Service | Port | Description |
-|---------|------|-------------|
-| API | 8000 | FastAPI prediction service |
-| MLflow | 5050 | Experiment tracking UI |
-| Prometheus | 9090 | Metrics collection |
-| Grafana | 3000 | Metrics dashboards |
-| Alertmanager | 9093 | Alert management |
-| Streamlit | 8501 | Web UI for predictions |
-
-## ✨ Features
-
-### Machine Learning
-- ✅ Binary classification for heart disease prediction
-- ✅ Multiple models (Random Forest, Logistic Regression)
-- ✅ Hyperparameter tuning with GridSearchCV
-- ✅ Cross-validation for robust evaluation
-- ✅ Feature importance analysis
-
-### MLOps
-- ✅ Experiment tracking with MLflow
-- ✅ Model versioning and registry
-- ✅ Reproducible environments
-- ✅ CI/CD with GitHub Actions
-- ✅ Docker containerization
-
-### Monitoring & Observability
-- ✅ Structured JSON logging
-- ✅ Prometheus metrics collection
-- ✅ Grafana dashboards
-- ✅ Alerting with Alertmanager
-- ✅ Request/response tracking
-
-### API
-- ✅ FastAPI with async support
-- ✅ OpenAPI documentation
-- ✅ Health check endpoints
-- ✅ Batch prediction support
-- ✅ Request validation
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Python 3.11+
-- Docker & Docker Compose
-- Git
-
-### Option 1: Docker Compose (Recommended)
+### 1. Clone the Repository
 
 ```bash
-# Clone the repository
-git clone https://github.com/YOUR_USERNAME/MLOPs_Project.git
+git clone <repository-url>
 cd MLOPs_Project
-
-# Start the full stack
-./scripts/deploy-local.sh start
-
-# Test the API
-./scripts/test-api.sh
 ```
 
-**Access the services:**
-- API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
-- MLflow: http://localhost:5000
-- Kibana: http://localhost:5601
-- Prometheus: http://localhost:9090
-- Grafana: http://localhost:3000 (admin/admin123)
-
-### Option 2: Local Development
+### 2. Run the Interactive Setup
 
 ```bash
-# Create conda environment
-conda env create -f conda-env.yml
-conda activate heart-disease-mlops
+# Make script executable
+chmod +x scripts/interactive-workflow.sh
 
-# Download data
-python -m src.download_data
+# Activate your Python virtual environment first
+source .venv/bin/activate  # or: conda activate your-env
 
-# Train models
-python -m src.train
-
-# Run API
-uvicorn src.api:app --reload --port 8000
+# Run the interactive workflow
+./scripts/interactive-workflow.sh
 ```
 
-## 📁 Project Structure
+The interactive script will guide you through:
+- Environment setup (dependencies installation)
+- Data preparation
+- Model training with MLflow
+- Running tests
+- Building Docker images
+- Starting all services
+
+### 3. Access the Services
+
+Once deployed, access these URLs:
+
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| **Streamlit UI** | http://localhost:8501 | - |
+| **API Docs** | http://localhost:8000/docs | - |
+| **MLflow** | http://localhost:5050 | - |
+| **Grafana** | http://localhost:3000 | admin/admin123 |
+| **Prometheus** | http://localhost:9090 | - |
+
+## Project Structure
 
 ```
 MLOPs_Project/
-├── src/
-│   ├── api.py                       # FastAPI application
-│   ├── api_local.py                 # API with full logging
-│   ├── data.py                      # Data loading utilities
-│   ├── model.py                     # Model training/prediction
-│   ├── train.py                     # Training script
-│   └── download_data.py             # Data download script
-├── notebooks/
-│   ├── 01_EDA_Heart_Disease.ipynb   # Exploratory Data Analysis
-│   └── 02_Feature_Engineering_and_Modeling.ipynb
-├── tests/
-│   ├── test_api.py                  # API tests
-│   ├── test_data.py                 # Data module tests
-│   ├── test_model.py                # Model tests
-│   └── test_integration.py          # Integration tests
-├── k8s/
-│   ├── deployment.yaml              # API deployment
-│   ├── service.yaml                 # LoadBalancer service
-│   ├── ingress.yaml                 # Ingress routing
-│   ├── mlflow-deployment.yaml       # MLflow deployment
-│   └── mlflow-service.yaml          # MLflow service
-├── monitoring/
-│   ├── prometheus/                  # Prometheus configuration
-│   ├── grafana/                     # Grafana dashboards
-│   └── alertmanager/                # Alertmanager configuration
-├── scripts/
-│   ├── deploy-docker.sh             # Docker Compose deployment
-│   ├── deploy-k8s.sh                # Kubernetes deployment
-│   ├── setup.sh                     # Initial setup
-│   └── test-api.sh                  # API testing script
-├── data/
-│   ├── raw/                         # Raw data
-│   └── processed/                   # Processed data
-├── models/                          # Saved models
-├── docs/                            # Documentation
-├── docker-compose.local.yml         # Full stack deployment
-├── Dockerfile.local                 # Docker image for local
-├── requirements.txt                 # Python dependencies
-├── requirements-local.txt           # Local deployment deps
-└── README.md                        # This file
+├── src/                    # Source code
+│   ├── api.py             # FastAPI application
+│   ├── data.py            # Data processing
+│   ├── model.py           # Model training
+│   └── train.py           # Training pipeline
+├── ui/                     # Streamlit web interface
+│   └── streamlit_app.py
+├── tests/                  # Test suite
+├── data/                   # Dataset storage
+│   ├── raw/               # Raw data
+│   └── processed/         # Processed data
+├── models/                 # Trained models
+├── mlruns/                 # MLflow experiments
+├── monitoring/             # Monitoring configs
+│   ├── prometheus/
+│   └── grafana/
+├── k8s/                    # Kubernetes manifests
+├── scripts/                # Automation scripts
+└── docker-compose.yml      # Service orchestration
 ```
 
-## 💻 Development Guide
+## Manual Commands
 
-### Setting Up Development Environment
+If you prefer manual setup over the interactive script:
 
-```bash
-# Using conda
-conda env create -f conda-env.yml
-conda activate heart-disease-mlops
-
-# Or using pip
-pip install -r requirements.txt
-```
-
-### Running the Notebooks
+### Start All Services
 
 ```bash
-# Start Jupyter
-jupyter notebook notebooks/
-```
-
-### Training Models
-
-```bash
-# Train with MLflow tracking
-python -m src.train
-
-# View experiments
-mlflow ui --port 5000
-```
-
-### Running Tests
-
-```bash
-# Run all tests
-pytest tests/ -v
-
-# Run with coverage
-pytest tests/ --cov=src --cov-report=html
-```
-
-## 🚢 Deployment
-
-### Option 1: Docker Compose (Quick Start)
-
-```bash
-# Start all services
-docker-compose up -d
+# Start with Docker Compose
+docker compose up -d
 
 # View logs
-docker-compose logs -f api
+docker compose logs -f
 
 # Stop services
-docker-compose down
+docker compose down
 ```
 
-Access:
-- API: http://localhost:8000
-- MLflow: http://localhost:5050
-- Prometheus: http://localhost:9090
-- Grafana: http://localhost:3000 (admin/admin123)
-- Streamlit UI: http://localhost:8501
-
-### Option 2: Kubernetes (Minikube)
+### Train Models Locally
 
 ```bash
-# Deploy to Minikube
-./scripts/deploy-k8s.sh
+# Activate environment
+source .venv/bin/activate
 
-# Check deployment status
+# Download data
+python -m src.download_data --output data/raw/heart.csv
+
+# Process data
+python -m src.data --input data/raw/heart.csv --output data/processed/heart_processed.csv
+
+# Train models
+python -m src.train --data data/processed/heart_processed.csv --model-dir models
+```
+
+### Run Tests
+
+```bash
+pytest tests/ -v --cov=src
+```
+
+## Using the Streamlit UI
+
+1. Open http://localhost:8501
+2. Navigate through pages:
+   - **Home**: Quick access to services
+   - **Train Models**: Train ML models with custom hyperparameters
+   - **MLflow Experiments**: View and compare model runs
+   - **Prediction**: Make predictions interactively
+   - **Metrics**: View API metrics
+   - **Testing**: Run API tests
+
+## Monitoring & Observability
+
+### Prometheus Metrics
+
+Available at http://localhost:9090
+
+Key metrics:
+- `api_requests_total` - Total API requests
+- `api_request_duration_seconds` - Request latency
+- `api_predictions_total` - Prediction counts
+
+### Grafana Dashboards
+
+Login at http://localhost:3000 (admin/admin123)
+
+Pre-configured dashboard shows:
+- Request rate and latency
+- Prediction distribution
+- Error rates
+- System metrics
+
+## Kubernetes Deployment (Optional)
+
+If you enabled Kubernetes in Docker Desktop:
+
+```bash
+# Build image
+docker build -t heart-disease-api:latest .
+
+# Deploy to Kubernetes
+kubectl apply -f k8s/
+
+# Check status
 kubectl get pods
 kubectl get services
-kubectl get ingress
 
-# Access services
-minikube service heart-disease-api --url
+# Access API
 kubectl port-forward svc/heart-disease-api 8000:8000
 
-# Clean up
+# Cleanup
 kubectl delete -f k8s/
 ```
 
-See [docs/deployment/LOCAL_DEPLOYMENT.md](docs/deployment/LOCAL_DEPLOYMENT.md) for detailed instructions.
+## API Usage Examples
 
-## 📊 Monitoring
+### Health Check
 
-### Metrics (Prometheus + Grafana)
+```bash
+curl http://localhost:8000/health
+```
 
-**Prometheus** (http://localhost:9090):
-- Query metrics
-- View targets and alerts
-- Explore metric labels
-
-**Grafana** (http://localhost:3000):
-- Pre-configured API dashboard
-- Request latency graphs
-- Prediction distribution charts
-- Login: admin/admin123
-
-### Available Metrics
-
-| Metric | Type | Description |
-|--------|------|-------------|
-| `api_requests_total` | Counter | Total requests by endpoint |
-| `api_request_latency_seconds` | Histogram | Request latency distribution |
-| `api_predictions_total` | Counter | Predictions by result |
-| `api_prediction_probability` | Histogram | Prediction probabilities |
-
-## 📚 API Documentation
-
-### Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | Welcome message |
-| `/health` | GET | Health check |
-| `/predict` | POST | Single prediction |
-| `/predict/batch` | POST | Batch predictions |
-| `/metrics` | GET | Prometheus metrics |
-| `/docs` | GET | Swagger UI |
-
-### Example Request
+### Make Prediction
 
 ```bash
 curl -X POST http://localhost:8000/predict \
   -H "Content-Type: application/json" \
   -d '{
     "data": [{
-      "age": 55,
-      "sex": 1,
-      "cp": 2,
-      "trestbps": 130,
-      "chol": 250,
-      "fbs": 0,
-      "restecg": 0,
-      "thalach": 150,
-      "exang": 0,
-      "oldpeak": 1.0,
-      "slope": 1,
-      "ca": 0,
-      "thal": 2
+      "age": 55, "sex": 1, "cp": 2,
+      "trestbps": 130, "chol": 250, "fbs": 0,
+      "restecg": 0, "thalach": 150, "exang": 0,
+      "oldpeak": 1.0, "slope": 1, "ca": 0, "thal": 2
     }]
   }'
 ```
 
-### Response Format
+## Troubleshooting
 
-```json
-{
-  "predictions": [1],
-  "probabilities": [[0.25, 0.75]],
-  "model": "random_forest"
-}
-```
-
-## 🧪 Testing
-
-### Unit Tests
+### Services Not Starting
 
 ```bash
-pytest tests/test_data.py -v
-pytest tests/test_model.py -v
+# Check Docker is running
+docker ps
+
+# Rebuild and restart
+docker compose down -v
+docker compose up -d --build
 ```
 
-### Integration Tests
+### Port Already in Use
 
 ```bash
-pytest tests/test_api.py -v
-pytest tests/test_integration.py -v
+# Find and kill process on port 8000
+lsof -ti:8000 | xargs kill -9
+
+# Or change port in docker-compose.yml
 ```
 
-### API Tests
+### Streamlit Loading Issues
 
 ```bash
-# Using test script
-./scripts/test-api.sh
+# Restart streamlit service
+docker compose restart streamlit
 
-# Using curl
-curl http://localhost:8000/health
+# View logs
+docker logs streamlit-ui
 ```
 
-## 📖 Documentation
+## Additional Resources
 
-- [Local Deployment Guide](docs/LOCAL_DEPLOYMENT.md)
-- [Kubernetes Deployment](k8s/README-K8S.md)
-- [Video Demonstration Guide](docs/VIDEO_GUIDE.md)
-- [Final Report Template](docs/FINAL_REPORT_TEMPLATE.md)
+- **Dataset**: UCI Heart Disease Dataset
+- **Documentation**: See `/docs` folder
+- **Notebooks**: See `/notebooks` for EDA
 
-## 🤝 Contributing
+## License
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- UCI Machine Learning Repository for the Heart Disease dataset
-- FastAPI for the excellent web framework
-- MLflow for experiment tracking
-- The open-source community for amazing tools
+MIT License
 
 ---
 
-**Made with ❤️ for MLOps learning**
+Made for MLOps learning

@@ -242,11 +242,9 @@ step_kubernetes() {
         
         echo "Deployment options:"
         echo "  1. Deploy to Kubernetes"
-        echo "  2. View deployment status"
-        echo "  3. Delete deployment"
-        echo "  4. Skip"
+        echo "  2. Skip"
         echo ""
-        echo -n "Enter choice (1/2/3/4): "
+        echo -n "Enter choice (1/2): "
         read -r choice
         
         case "$choice" in
@@ -279,22 +277,6 @@ step_kubernetes() {
                 echo ""
                 echo "View services:"
                 echo -e "  ${CYAN}kubectl get services${NC}"
-                ;;
-            2)
-                echo ""
-                echo "Pods:"
-                kubectl get pods -l app=heart-disease-api 2>/dev/null || echo "No pods found"
-                echo ""
-                echo "Services:"
-                kubectl get services heart-disease-api 2>/dev/null || echo "No service found"
-                echo ""
-                echo "Ingress:"
-                kubectl get ingress heart-disease-api 2>/dev/null || echo "No ingress found"
-                ;;
-            3)
-                print_step "Deleting Kubernetes resources..."
-                kubectl delete -f k8s/ 2>/dev/null || true
-                print_success "Resources deleted"
                 ;;
             4)
                 print_warning "Skipping Kubernetes deployment"
@@ -524,19 +506,13 @@ main() {
     echo "Streamlit UI (Docker Compose):"
     echo -e "  ${BLUE}http://localhost:8501${NC} - Web Interface"
     echo ""
-    echo -e "${YELLOW}Useful commands:${NC}"
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}🚀 Ready to explore the application?${NC}"
     echo ""
-    echo "Test API:"
-    echo -e "  ${CYAN}./scripts/quick-test.sh${NC}"
+    echo -e "Open Streamlit UI in your browser:"
+    echo -e "  ${CYAN}http://localhost:8501${NC}"
     echo ""
-    echo "View Docker logs:"
-    echo -e "  ${CYAN}docker compose logs -f api${NC}"
-    echo ""
-    echo "Stop all services:"
-    echo -e "  ${CYAN}docker compose down${NC}"
-    echo ""
-    echo "Access Kubernetes (if deployed):"
-    echo -e "  ${CYAN}kubectl port-forward svc/heart-disease-api 8000:8000${NC}"
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
 }
 
