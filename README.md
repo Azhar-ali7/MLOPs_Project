@@ -5,7 +5,7 @@
 [![Docker](https://img.shields.io/badge/Docker-ready-blue.svg)](https://www.docker.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A complete MLOps pipeline for heart disease prediction with Docker deployment, full-stack monitoring (ELK + Prometheus/Grafana), and CI/CD automation.
+A complete MLOps pipeline for heart disease prediction with Docker and Kubernetes deployment, Prometheus/Grafana monitoring, and CI/CD automation.
 
 ## 📑 Table of Contents
 
@@ -32,7 +32,7 @@ This project demonstrates a production-ready MLOps pipeline for predicting heart
 5. **CI/CD Pipeline** - Automated testing with GitHub Actions
 6. **Containerization** - Docker for consistent deployment
 7. **Production Deployment** - Docker Compose & Kubernetes (Minikube)
-8. **Monitoring & Logging** - ELK stack + Prometheus/Grafana
+8. **Monitoring & Logging** - Prometheus/Grafana for metrics visualization
 
 ## 🏗 Architecture
 
@@ -60,13 +60,6 @@ This project demonstrates a production-ready MLOps pipeline for predicting heart
 │                                                      │ Dashboard │          │
 │                                                      └───────────┘          │
 │                                                                              │
-│  ┌───────────────────────────────────────────────────────────────┐          │
-│  │                     ELK Stack (Logging)                        │          │
-│  │  ┌─────────┐    ┌───────────┐    ┌─────────┐                  │          │
-│  │  │ Fluentd │───▶│Elasticsearch│───▶│ Kibana  │                  │          │
-│  │  └─────────┘    └───────────┘    └─────────┘                  │          │
-│  └───────────────────────────────────────────────────────────────┘          │
-│                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -75,13 +68,11 @@ This project demonstrates a production-ready MLOps pipeline for predicting heart
 | Service | Port | Description |
 |---------|------|-------------|
 | API | 8000 | FastAPI prediction service |
-| MLflow | 5000 | Experiment tracking UI |
-| Elasticsearch | 9200 | Log storage |
-| Kibana | 5601 | Log visualization |
-| Fluentd | 24224 | Log collection |
+| MLflow | 5050 | Experiment tracking UI |
 | Prometheus | 9090 | Metrics collection |
 | Grafana | 3000 | Metrics dashboards |
 | Alertmanager | 9093 | Alert management |
+| Streamlit | 8501 | Web UI for predictions |
 
 ## ✨ Features
 
@@ -101,10 +92,10 @@ This project demonstrates a production-ready MLOps pipeline for predicting heart
 
 ### Monitoring & Observability
 - ✅ Structured JSON logging
-- ✅ Centralized logging with ELK stack
 - ✅ Prometheus metrics collection
 - ✅ Grafana dashboards
 - ✅ Alerting with Alertmanager
+- ✅ Request/response tracking
 
 ### API
 - ✅ FastAPI with async support
@@ -180,18 +171,19 @@ MLOPs_Project/
 │   ├── test_model.py                # Model tests
 │   └── test_integration.py          # Integration tests
 ├── k8s/
-│   ├── local/                       # Minikube manifests
-│   ├── deployment.yaml              # Kubernetes deployment
-│   ├── service.yaml                 # Kubernetes service
-│   └── README-K8S.md                # K8s deployment guide
+│   ├── deployment.yaml              # API deployment
+│   ├── service.yaml                 # LoadBalancer service
+│   ├── ingress.yaml                 # Ingress routing
+│   ├── mlflow-deployment.yaml       # MLflow deployment
+│   └── mlflow-service.yaml          # MLflow service
 ├── monitoring/
-│   ├── fluentd/                     # Fluentd configuration
 │   ├── prometheus/                  # Prometheus configuration
 │   ├── grafana/                     # Grafana dashboards
 │   └── alertmanager/                # Alertmanager configuration
 ├── scripts/
-│   ├── deploy-local.sh              # Local deployment script
-│   ├── deploy-k8s-local.sh          # Minikube deployment
+│   ├── deploy-docker.sh             # Docker Compose deployment
+│   ├── deploy-k8s.sh                # Kubernetes deployment
+│   ├── setup.sh                     # Initial setup
 │   └── test-api.sh                  # API testing script
 ├── data/
 │   ├── raw/                         # Raw data
@@ -247,48 +239,48 @@ pytest tests/ --cov=src --cov-report=html
 
 ## 🚢 Deployment
 
-### Docker Compose Deployment
+### Option 1: Docker Compose (Quick Start)
 
 ```bash
 # Start all services
-./scripts/deploy-local.sh start
+docker-compose up -d
 
 # View logs
-./scripts/deploy-local.sh logs
+docker-compose logs -f api
 
 # Stop services
-./scripts/deploy-local.sh stop
-
-# Clean up
-./scripts/deploy-local.sh clean
+docker-compose down
 ```
 
-### Kubernetes Deployment (Minikube)
+Access:
+- API: http://localhost:8000
+- MLflow: http://localhost:5050
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3000 (admin/admin123)
+- Streamlit UI: http://localhost:8501
+
+### Option 2: Kubernetes (Minikube)
 
 ```bash
 # Deploy to Minikube
-./scripts/deploy-k8s-local.sh deploy
+./scripts/deploy-k8s.sh
 
-# Check status
-./scripts/deploy-k8s-local.sh status
+# Check deployment status
+kubectl get pods
+kubectl get services
+kubectl get ingress
 
-# Get service URL
-minikube service heart-disease-api-service -n heart-disease --url
+# Access services
+minikube service heart-disease-api --url
+kubectl port-forward svc/heart-disease-api 8000:8000
 
-# Delete deployment
-./scripts/deploy-k8s-local.sh delete
+# Clean up
+kubectl delete -f k8s/
 ```
 
-See [k8s/README-K8S.md](k8s/README-K8S.md) for detailed Kubernetes instructions.
+See [docs/deployment/LOCAL_DEPLOYMENT.md](docs/deployment/LOCAL_DEPLOYMENT.md) for detailed instructions.
 
 ## 📊 Monitoring
-
-### Logging (ELK Stack)
-
-Access Kibana at http://localhost:5601 to:
-- Search and filter logs
-- Create log visualizations
-- Set up log-based alerts
 
 ### Metrics (Prometheus + Grafana)
 

@@ -90,6 +90,9 @@ desktop.ini
 *.md
 !README.md
 
+# Documentation folder
+docs/
+
 # Environment variables and secrets
 .env
 .env.local
