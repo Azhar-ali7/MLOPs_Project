@@ -6,10 +6,6 @@
 
 ---
 
-A production-ready MLOps pipeline for heart disease prediction featuring automated CI/CD, experiment tracking, containerized deployment, and comprehensive monitoring.
-
-**🎯 For Evaluators:** See [EVALUATOR_GUIDE.md](EVALUATOR_GUIDE.md) for a quick 3-step evaluation process that works on Mac, Windows, and Linux!
-
 ---
 
 ## Table of Contents
