@@ -1,10 +1,8 @@
-# MLOps Project: Heart Disease Prediction System
+# MLOps Assignment 1 Group - 49
 ## End-to-End Machine Learning Pipeline with CI/CD and Production Deployment
 
-**Course**: MLOps (S1-25_AIMLCZG523)  
 **Group**: 49  
 **Repository**: https://github.com/Azhar-ali7/MLOPs_Project  
-**Date**: January 2026
 
 ---
 
