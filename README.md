@@ -87,12 +87,6 @@ The Docker workflow will:
 - Run the complete test suite
 - Verify all services are healthy
 
-**Why Docker?** 
-- ✅ Works identically on Mac, Windows, and Linux
-- ✅ No local Python environment setup needed
-- ✅ All dependencies pre-installed
-- ✅ Perfect for evaluators and production deployment
-
 ### 3. Access the Services
 
 Once deployed, access these URLs:
