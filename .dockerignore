@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Data
+data/
+*.csv
+*.dat
+*.h5
+*.parquet
+
+# MLflow
+mlruns/
+mlflow.db
+
+# Notebooks
+notebooks/
+*.ipynb
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Git
+.git/
+.gitignore
+
+# Screenshots
+screenshots/
+Screenshots/
+
+# Kubernetes manifests
+k8s/
+
+# CI/CD
+.github/
+
