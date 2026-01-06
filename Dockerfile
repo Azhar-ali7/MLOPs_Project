@@ -6,6 +6,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
+    dos2unix \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
@@ -14,12 +15,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY src/ ./src/
-COPY models/ ./models/
 COPY scripts/ ./scripts/
 COPY tests/ ./tests/
 
-# Create logs directory
-RUN mkdir -p /app/logs
+# Create necessary directories (models will be created by volume mount)
+RUN mkdir -p /app/logs /app/models /app/data/raw /app/data/processed /app/mlruns
+
+# Convert Windows line endings to Unix (CRLF -> LF)
+RUN find /app/scripts -type f -name "*.sh" -exec dos2unix {} \;
 
 # Make scripts executable
 RUN chmod +x scripts/*.sh
