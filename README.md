@@ -8,6 +8,8 @@
 
 A production-ready MLOps pipeline for heart disease prediction featuring automated CI/CD, experiment tracking, containerized deployment, and comprehensive monitoring.
 
+**🎯 For Evaluators:** See [EVALUATOR_GUIDE.md](EVALUATOR_GUIDE.md) for a quick 3-step evaluation process that works on Mac, Windows, and Linux!
+
 ---
 
 ## Table of Contents
@@ -66,26 +68,30 @@ git clone <repository-url>
 cd MLOPs_Project
 ```
 
-### 2. Run the Interactive Setup
+### 2. Start with Docker (Recommended - Works on Mac/Windows/Linux)
 
 ```bash
-# Make script executable
-chmod +x scripts/interactive-workflow.sh
+# Build Docker images first
+docker compose build
 
-# Activate your Python virtual environment first
-source .venv/bin/activate  # or: conda activate your-env
+# Start all services
+docker compose up -d
 
-# Run the interactive workflow
-./scripts/interactive-workflow.sh
+# Run the complete workflow inside Docker
+docker compose exec api bash scripts/docker-workflow.sh
 ```
 
-The interactive script will guide you through:
-- Environment setup (dependencies installation)
-- Data preparation
-- Model training with MLflow
-- Running tests
-- Building Docker images
-- Starting all services
+The Docker workflow will:
+- Download and prepare data
+- Train models with MLflow tracking
+- Run the complete test suite
+- Verify all services are healthy
+
+**Why Docker?** 
+- ✅ Works identically on Mac, Windows, and Linux
+- ✅ No local Python environment setup needed
+- ✅ All dependencies pre-installed
+- ✅ Perfect for evaluators and production deployment
 
 ### 3. Access the Services
 
@@ -126,26 +132,36 @@ MLOPs_Project/
 
 ## Manual Commands
 
-If you prefer manual setup over the interactive script:
-
-### Start All Services
+### Docker Commands (Recommended)
 
 ```bash
-# Start with Docker Compose
+# Start all services
 docker compose up -d
 
+# Run complete workflow inside Docker
+docker compose exec api bash scripts/docker-workflow.sh
+
+# Or run individual commands:
+docker compose exec api python src/download_data.py --output data/raw/heart.csv
+docker compose exec api python src/data --input data/raw/heart.csv --output data/processed/heart_processed.csv
+docker compose exec api python src/train --data data/processed/heart_processed.csv --model-dir models
+docker compose exec api pytest tests/ -v
+
 # View logs
-docker compose logs -f
+docker compose logs -f api
 
 # Stop services
 docker compose down
 ```
 
-### Train Models Locally
+### Local Development (Optional)
+
+For local Python development without Docker:
 
 ```bash
-# Activate environment
-source .venv/bin/activate
+# Create and activate environment
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
 # Download data
 python -m src.download_data --output data/raw/heart.csv
@@ -220,6 +236,17 @@ curl -X POST http://localhost:8000/predict \
 
 ## Troubleshooting
 
+### Cross-Platform Notes
+
+**For Windows Users:**
+- Use PowerShell or Command Prompt for Docker commands
+- All Docker commands work identically on Windows
+- No need to run bash scripts directly - use `docker compose exec api bash scripts/docker-workflow.sh`
+
+**For Mac/Linux Users:**
+- All commands work as shown
+- Can run scripts directly: `./scripts/docker-workflow.sh` (local) or inside Docker (recommended)
+
 ### Services Not Starting
 
 ```bash
@@ -228,14 +255,18 @@ docker ps
 
 # Rebuild and restart
 docker compose down -v
-docker compose up -d --build
+docker compose build --no-cache
+docker compose up -d
 ```
 
 ### Port Already in Use
 
 ```bash
-# Find and kill process on port 8000
+# Find and kill process on port 8000 (Mac/Linux)
 lsof -ti:8000 | xargs kill -9
+
+# Windows PowerShell
+Get-Process -Id (Get-NetTCPConnection -LocalPort 8000).OwningProcess | Stop-Process
 
 # Or change port in docker-compose.yml
 ```

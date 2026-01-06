@@ -8,12 +8,15 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./models:/app/models:ro
+      - ./models:/app/models
       - ./logs:/app/logs
+      - ./data:/app/data
+      - ./mlruns:/app/mlruns
     environment:
       - MODEL_PATH=/app/models/random_forest.joblib
       - PYTHONUNBUFFERED=1
       - LOG_LEVEL=INFO
+      - GIT_PYTHON_REFRESH=quiet
     networks:
       - mlops-network
     healthcheck:
